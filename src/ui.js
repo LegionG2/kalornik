@@ -268,15 +268,15 @@ export function createUI({ state, store }) {
     }
 
     for (const dateISO of dates) {
-      const totals = getTotals(dateISO);
-      const goals = state.s.goals;
-      const ok = (goals.kcal && totals.kcal >= goals.kcal * 0.98 && totals.kcal <= goals.kcal * 1.02)
-        && (!goals.prot || totals.prot >= goals.prot)
-        && (!goals.carb || totals.carb <= goals.carb)
-        && (!goals.fat || totals.fat <= goals.fat);
+      const t = getTotals(dateISO);
+      const g = state.s.goals;
+      const ok = (g.kcal && t.kcal >= g.kcal * 0.98 && t.kcal <= g.kcal * 1.02)
+        && (!g.prot || t.prot >= g.prot)
+        && (!g.carb || t.carb <= g.carb)
+        && (!g.fat || t.fat <= g.fat);
       const row = document.createElement('div');
       row.className = 'item';
-      row.innerHTML = `<div><h4>${formatISODatePL(dateISO)}</h4><div class="meta">${fmt(totals.kcal)} kcal • B ${fmt(totals.prot, 1)} g • W ${fmt(totals.carb, 1)} g • T ${fmt(totals.fat, 1)} g</div></div><span class="chip ${ok ? '' : 'danger'}">${ok ? '✔ w celu' : '◦ poza celem'}</span>`;
+      row.innerHTML = `<div><h4>${formatISODatePL(dateISO)}</h4><div class="meta">${fmt(t.kcal)} kcal • B ${fmt(t.prot, 1)} g • W ${fmt(t.carb, 1)} g • T ${fmt(t.fat, 1)} g</div></div><span class="chip ${ok ? '' : 'danger'}">${ok ? '✔ w celu' : '◦ poza celem'}</span>`;
       refs.histList.appendChild(row);
     }
     openDialog(refs.dlgHist);
