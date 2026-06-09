@@ -1,0 +1,409 @@
+import { createScanner } from './scanner.js?v=3';
+
+export function createUI({ state, store }) {
+  const todayISO = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const refs = {
+    targets: document.getElementById('targets'),
+    todayLabel: document.getElementById('todayLabel'),
+    entries: document.getElementById('entries'),
+    totalsText: document.getElementById('totalsText'),
+    dlgGoals: document.getElementById('modalGoals'),
+    dlgAdd: document.getElementById('modalAdd'),
+    dlgFavs: document.getElementById('modalFavs'),
+    dlgHist: document.getElementById('modalHistory'),
+    dlgScan: document.getElementById('modalScan'),
+    goalK: document.getElementById('goalKcal'),
+    goalP: document.getElementById('goalProt'),
+    goalC: document.getElementById('goalCarb'),
+    goalF: document.getElementById('goalFat'),
+    addTitle: document.getElementById('addModalTitle'),
+    addBtn: document.getElementById('btnAddEntry'),
+    addName: document.getElementById('addName'),
+    addK: document.getElementById('addKcal100'),
+    addP: document.getElementById('addProt100'),
+    addC: document.getElementById('addCarb100'),
+    addF: document.getElementById('addFat100'),
+    addPortion: document.getElementById('addPortion'),
+    calcPreview: document.getElementById('calcPreview'),
+    favList: document.getElementById('favList'),
+    histList: document.getElementById('historyList'),
+    video: document.getElementById('video'),
+    scanStatus: document.getElementById('scanStatus'),
+    eanManual: document.getElementById('eanManual'),
+    prodName: document.getElementById('prodName'),
+    prodCode: document.getElementById('prodCode'),
+    offK: document.getElementById('offKcal100'),
+    offP: document.getElementById('offProt100'),
+    offC: document.getElementById('offCarb100'),
+    offF: document.getElementById('offFat100'),
+    offPortion: document.getElementById('offPortion'),
+    offPreview: document.getElementById('offPreview'),
+    btnAddFromOFF: document.getElementById('btnAddFromOFF'),
+    scanResult: document.getElementById('scanResult'),
+  };
+
+  const supportsDialog = typeof HTMLDialogElement !== 'undefined' && 'showModal' in HTMLDialogElement.prototype;
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const n = (value) => Number.isFinite(+value) ? +value : 0;
+  const fmt = (value, decimals = 0) => Number.isFinite(value) ? value.toFixed(decimals) : '0';
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+  const isSecureContextLike = () => location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+
+  function openDialog(dlg) {
+    if (supportsDialog) {
+      dlg.showModal();
+      return;
+    }
+
+    dlg.setAttribute('open', '');
+    dlg.style.position = 'fixed';
+    dlg.style.inset = '10px';
+    dlg.style.margin = '0 auto';
+    dlg.style.maxWidth = '92vw';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeDialog(dlg) {
+    if (supportsDialog) {
+      try {
+        dlg.close();
+      } catch (_) {}
+      return;
+    }
+
+    dlg.removeAttribute('open');
+    document.body.style.overflow = '';
+  }
+
+  function portionMacros(per100, grams) {
+    const factor = grams / 100;
+    return {
+      kcal: Math.round(n(per100.kcal) * factor),
+      prot: +(n(per100.prot) * factor).toFixed(1),
+      carb: +(n(per100.carb) * factor).toFixed(1),
+      fat: +(n(per100.fat) * factor).toFixed(1),
+    };
+  }
+
+  function formatISODatePL(dateISO) {
+    const [year, month, day] = String(dateISO).split('-');
+    return year && month && day ? `${day}.${month}.${year}` : dateISO;
+  }
+
+  function ensureDay(dateISO) {
+    if (!state.s.entries[dateISO]) state.s.entries[dateISO] = [];
+  }
+
+  function getTotals(dateISO) {
+    const list = state.s.entries[dateISO] || [];
+    return list.reduce((acc, item) => {
+      const macros = portionMacros({ kcal: item.kcal100, prot: item.prot100, carb: item.carb100, fat: item.fat100 }, item.grams);
+      acc.kcal += macros.kcal;
+      acc.prot += macros.prot;
+      acc.carb += macros.carb;
+      acc.fat += macros.fat;
+      return acc;
+    }, { kcal: 0, prot: 0, carb: 0, fat: 0 });
+  }
+
+  function renderSummary() {
+    refs.todayLabel.textContent = new Date().toLocaleDateString('pl-PL', { weekday: 'long', day: '2-digit', month: '2-digit' });
+    const goals = state.s.goals;
+    const totals = getTotals(todayISO());
+    refs.targets.innerHTML = '';
+
+    const blocks = [
+      { label: 'Kalorie', val: totals.kcal, goal: goals.kcal, unit: 'kcal', decimals: 0 },
+      { label: 'Białko', val: totals.prot, goal: goals.prot, unit: 'g', decimals: 1 },
+      { label: 'Węglowodany', val: totals.carb, goal: goals.carb, unit: 'g', decimals: 1 },
+      { label: 'Tłuszcz', val: totals.fat, goal: goals.fat, unit: 'g', decimals: 1 },
+    ];
+
+    for (const block of blocks) {
+      const over = block.goal > 0 && block.val > block.goal;
+      const pct = block.goal > 0 ? clamp((block.val / block.goal) * 100, 0, 100) : 0;
+      const diff = over ? block.val - block.goal : 0;
+      const diffHtml = over ? `<span class="overdiff">(${fmt(diff, block.unit === 'kcal' ? 0 : 1)})</span>` : '';
+      const el = document.createElement('div');
+      el.className = 'target';
+      el.innerHTML = `<div class="row"><span>${block.label}</span><span class="muted">${fmt(block.val, block.decimals)} / ${fmt(block.goal, 0)} ${block.unit}${diffHtml}</span></div>
+      <div class="progress ${over ? 'over' : ''}"><i style="width:${pct}%"></i></div>`;
+      refs.targets.appendChild(el);
+    }
+
+    refs.totalsText.textContent = `${fmt(totals.kcal)} kcal • B ${fmt(totals.prot, 1)} g • W ${fmt(totals.carb, 1)} g • T ${fmt(totals.fat, 1)} g`;
+  }
+
+  function renderEntries() {
+    const list = state.s.entries[todayISO()] || [];
+    refs.entries.innerHTML = '';
+
+    if (!list.length) {
+      const empty = document.createElement('div');
+      empty.className = 'muted';
+      empty.textContent = 'Brak wpisów na dziś. Dodaj produkt ręcznie, z ulubionych albo przez EAN.';
+      refs.entries.appendChild(empty);
+      return;
+    }
+
+    for (const item of list) {
+      const macros = portionMacros({ kcal: item.kcal100, prot: item.prot100, carb: item.carb100, fat: item.fat100 }, item.grams);
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `<div><h4>${esc(item.name)}</h4><div class="meta">${fmt(n(item.grams), 0)} g • ${macros.kcal} kcal • B ${fmt(macros.prot, 1)} g • W ${fmt(macros.carb, 1)} g • T ${fmt(macros.fat, 1)} g</div></div><div class="row" style="gap:6px"><button class="btn" data-action="edit" data-id="${esc(item.id)}">Edytuj</button><button class="btn" data-action="del" data-id="${esc(item.id)}">Usuń</button></div>`;
+      refs.entries.appendChild(row);
+    }
+  }
+
+  function openGoals() {
+    const goals = state.s.goals;
+    refs.goalK.value = goals.kcal || '';
+    refs.goalP.value = goals.prot || '';
+    refs.goalC.value = goals.carb || '';
+    refs.goalF.value = goals.fat || '';
+    openDialog(refs.dlgGoals);
+  }
+
+  function openAdd(prefill) {
+    state.editingId = prefill?.id || null;
+    refs.addTitle.textContent = state.editingId ? 'Edytuj pozycję' : 'Dodaj pozycję ręcznie';
+    refs.addBtn.textContent = state.editingId ? 'Zapisz zmiany' : 'Dodaj do dnia';
+    refs.addName.value = prefill?.name || '';
+    refs.addK.value = prefill?.kcal100 ?? '';
+    refs.addP.value = prefill?.prot100 ?? '';
+    refs.addC.value = prefill?.carb100 ?? '';
+    refs.addF.value = prefill?.fat100 ?? '';
+    refs.addPortion.value = prefill?.grams ?? '';
+    refs.calcPreview.textContent = 'Makra porcji pojawią się tutaj…';
+    if (prefill?.grams) recalcManual();
+    openDialog(refs.dlgAdd);
+  }
+
+  function recalcManual() {
+    const per100 = { kcal: n(refs.addK.value), prot: n(refs.addP.value), carb: n(refs.addC.value), fat: n(refs.addF.value) };
+    const grams = n(refs.addPortion.value);
+    const macros = portionMacros(per100, grams);
+    refs.calcPreview.textContent = `${grams} g → ${macros.kcal} kcal • B ${fmt(macros.prot, 1)} g • W ${fmt(macros.carb, 1)} g • T ${fmt(macros.fat, 1)} g`;
+  }
+
+  function addEntry(obj) {
+    ensureDay(todayISO());
+    const item = { id: crypto.randomUUID?.() || String(Date.now()), ...obj };
+    state.s.entries[todayISO()].push(item);
+    store.save(state.s);
+    renderEntries();
+    renderSummary();
+  }
+
+  function upsertEntry(obj) {
+    ensureDay(todayISO());
+    const list = state.s.entries[todayISO()];
+
+    if (state.editingId) {
+      const index = list.findIndex((item) => item.id === state.editingId);
+      if (index >= 0) {
+        list[index] = { ...list[index], ...obj };
+      } else {
+        addEntry(obj);
+      }
+      state.editingId = null;
+    } else {
+      addEntry(obj);
+      return;
+    }
+
+    store.save(state.s);
+    renderEntries();
+    renderSummary();
+  }
+
+  function saveGoals() {
+    state.s.goals = { kcal: n(refs.goalK.value), prot: n(refs.goalP.value), carb: n(refs.goalC.value), fat: n(refs.goalF.value) };
+    store.save(state.s);
+    renderSummary();
+  }
+
+  function renderFavs() {
+    refs.favList.innerHTML = '';
+
+    if (!state.s.favs.length) {
+      const empty = document.createElement('div');
+      empty.className = 'muted';
+      empty.textContent = 'Brak ulubionych. Zapisz produkt z okna „Dodaj”.';
+      refs.favList.appendChild(empty);
+      return;
+    }
+
+    for (const [idx, fav] of state.s.favs.entries()) {
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `<div><h4>${esc(fav.name)}</h4><div class="meta">100 g → ${fmt(n(fav.kcal100), 0)} kcal • B ${fmt(n(fav.prot100), 1)} g • W ${fmt(n(fav.carb100), 1)} g • T ${fmt(n(fav.fat100), 1)} g</div></div><div class="row" style="gap:6px"><button class="btn" data-action="use" data-idx="${idx}">Użyj</button><button class="btn" data-action="del" data-idx="${idx}">Usuń</button></div>`;
+      refs.favList.appendChild(row);
+    }
+  }
+
+  function openFavs() {
+    renderFavs();
+    openDialog(refs.dlgFavs);
+  }
+
+  function openHistory() {
+    const dates = Object.keys(state.s.entries).sort().reverse();
+    refs.histList.innerHTML = '';
+
+    if (!dates.length) {
+      const empty = document.createElement('div');
+      empty.className = 'muted';
+      empty.textContent = 'Brak historii.';
+      refs.histList.appendChild(empty);
+      openDialog(refs.dlgHist);
+      return;
+    }
+
+    for (const dateISO of dates) {
+      const totals = getTotals(dateISO);
+      const goals = state.s.goals;
+      const ok = (goals.kcal && totals.kcal >= goals.kcal * 0.98 && totals.kcal <= goals.kcal * 1.02)
+        && (!goals.prot || totals.prot >= goals.prot)
+        && (!goals.carb || totals.carb <= goals.carb)
+        && (!goals.fat || totals.fat <= goals.fat);
+      const row = document.createElement('div');
+      row.className = 'item';
+      row.innerHTML = `<div><h4>${formatISODatePL(dateISO)}</h4><div class="meta">${fmt(totals.kcal)} kcal • B ${fmt(totals.prot, 1)} g • W ${fmt(totals.carb, 1)} g • T ${fmt(totals.fat, 1)} g</div></div><span class="chip ${ok ? '' : 'danger'}">${ok ? '✔ w celu' : '◦ poza celem'}</span>`;
+      refs.histList.appendChild(row);
+    }
+    openDialog(refs.dlgHist);
+  }
+
+  const scanner = createScanner({
+    state,
+    refs,
+    addEntry,
+    openDialog,
+    closeDialog,
+    utils: { n, fmt, portionMacros, isSecureContextLike },
+  });
+
+  function bindEvents() {
+    document.getElementById('btnGoals').addEventListener('click', openGoals);
+    document.getElementById('btnScan').addEventListener('click', scanner.openScan);
+    document.getElementById('btnAdd').addEventListener('click', () => openAdd());
+    document.getElementById('btnQuickAdd').addEventListener('click', () => openAdd());
+    document.getElementById('btnQuickFav').addEventListener('click', openFavs);
+    document.getElementById('btnHistory').addEventListener('click', openHistory);
+    document.getElementById('btnFavs').addEventListener('click', openFavs);
+
+    document.getElementById('saveGoals').addEventListener('click', (event) => {
+      event.preventDefault();
+      saveGoals();
+      closeDialog(refs.dlgGoals);
+    });
+
+    document.getElementById('btnRecalc').addEventListener('click', recalcManual);
+    document.getElementById('btnAddEntry').addEventListener('click', (event) => {
+      event.preventDefault();
+      const obj = {
+        name: refs.addName.value.trim() || 'Pozycja',
+        grams: n(refs.addPortion.value),
+        kcal100: n(refs.addK.value),
+        prot100: n(refs.addP.value),
+        carb100: n(refs.addC.value),
+        fat100: n(refs.addF.value),
+      };
+      if (obj.grams <= 0) {
+        alert('Podaj gramaturę.');
+        return;
+      }
+      upsertEntry(obj);
+      closeDialog(refs.dlgAdd);
+    });
+
+    document.getElementById('btnSaveFav').addEventListener('click', () => {
+      const fav = {
+        name: refs.addName.value.trim() || 'Pozycja',
+        kcal100: n(refs.addK.value),
+        prot100: n(refs.addP.value),
+        carb100: n(refs.addC.value),
+        fat100: n(refs.addF.value),
+      };
+      if (!(fav.kcal100 || fav.prot100 || fav.carb100 || fav.fat100)) {
+        alert('Uzupełnij wartości dla 100 g');
+        return;
+      }
+      state.s.favs.push(fav);
+      store.save(state.s);
+      alert('Zapisano w ulubionych');
+    });
+
+    refs.favList.addEventListener('click', (event) => {
+      const target = event.target.closest('button');
+      if (!target) return;
+
+      const idx = +target.dataset.idx;
+      if (target.dataset.action === 'del') {
+        state.s.favs.splice(idx, 1);
+        store.save(state.s);
+        renderFavs();
+      }
+      if (target.dataset.action === 'use') {
+        const fav = state.s.favs[idx];
+        closeDialog(refs.dlgFavs);
+        openAdd({ name: fav.name, kcal100: fav.kcal100, prot100: fav.prot100, carb100: fav.carb100, fat100: fav.fat100 });
+      }
+    });
+
+    refs.entries.addEventListener('click', (event) => {
+      const button = event.target.closest('button');
+      if (!button) return;
+
+      const id = button.dataset.id;
+      const list = state.s.entries[todayISO()] || [];
+      const index = list.findIndex((item) => item.id === id);
+      if (index < 0) return;
+
+      if (button.dataset.action === 'del') {
+        list.splice(index, 1);
+        store.save(state.s);
+        renderEntries();
+        renderSummary();
+      }
+      if (button.dataset.action === 'edit') {
+        const item = list[index];
+        openAdd({ id: item.id, name: item.name, kcal100: item.kcal100, prot100: item.prot100, carb100: item.carb100, fat100: item.fat100, grams: item.grams });
+      }
+    });
+
+    document.getElementById('btnLookup').addEventListener('click', () => {
+      const code = refs.eanManual.value.trim();
+      if (!code) return;
+      state.detected = false;
+      scanner.handleCode(code, { force: true });
+    });
+    document.getElementById('btnRecalcOFF').addEventListener('click', scanner.recalcOFF);
+    document.getElementById('btnAddFromOFF').addEventListener('click', scanner.addFromOFF);
+    document.getElementById('btnStopCam').addEventListener('click', scanner.stopCamera);
+
+    refs.dlgAdd.addEventListener('close', () => {
+      state.editingId = null;
+      refs.addBtn.textContent = 'Dodaj do dnia';
+      refs.addTitle.textContent = 'Dodaj pozycję ręcznie';
+    });
+    refs.dlgScan.addEventListener('close', scanner.stopCamera);
+  }
+
+  function init() {
+    ensureDay(todayISO());
+    bindEvents();
+    renderEntries();
+    renderSummary();
+  }
+
+  return { init, refs };
+}
