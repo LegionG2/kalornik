@@ -1,6 +1,6 @@
-import { createBackup } from './backup.js?v=7';
-import { createProducts } from './products.js?v=7';
-import { createScanner } from './scanner.js?v=7';
+import { createBackup } from './backup.js?v=8';
+import { createProducts } from './products.js?v=8';
+import { createScanner } from './scanner.js?v=8';
 
 export function createUI({ state, store }) {
   const todayISO = () => {
@@ -186,7 +186,9 @@ export function createUI({ state, store }) {
     if (!list.length) {
       const empty = document.createElement('div');
       empty.className = 'muted';
-      empty.textContent = 'Brak wpisów na dziś. Dodaj produkt ręcznie, z ulubionych albo przez EAN.';
+      empty.textContent = isToday(dateISO)
+        ? 'Brak wpisów na dziś. Dodaj produkt ręcznie, z ulubionych albo przez EAN.'
+        : 'Brak wpisów dla wybranej daty. Dodaj produkt ręcznie, z ulubionych albo przez EAN.';
       refs.entries.appendChild(empty);
       return;
     }
@@ -295,7 +297,10 @@ export function createUI({ state, store }) {
   }
 
   function openHistory() {
-    const dates = Object.keys(state.s.entries).sort().reverse();
+    const dates = Object.keys(state.s.entries)
+      .filter((dateISO) => (state.s.entries[dateISO] || []).length > 0)
+      .sort()
+      .reverse();
     refs.histList.innerHTML = '';
 
     if (!dates.length) {
@@ -341,7 +346,6 @@ export function createUI({ state, store }) {
   });
 
   function refresh() {
-    ensureDay(activeDateISO());
     renderEntries();
     renderSummary();
   }
