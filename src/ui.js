@@ -1,4 +1,5 @@
-import { createScanner } from './scanner.js?v=3';
+import { createProducts } from './products.js?v=5';
+import { createScanner } from './scanner.js?v=5';
 
 export function createUI({ state, store }) {
   const todayISO = () => {
@@ -291,14 +292,25 @@ export function createUI({ state, store }) {
     utils: { n, fmt, portionMacros, isSecureContextLike },
   });
 
+  const products = createProducts({
+    state,
+    store,
+    addEntry,
+    openDialog,
+    closeDialog,
+    utils: { n, fmt, esc, portionMacros },
+  });
+
   function bindEvents() {
     document.getElementById('btnGoals').addEventListener('click', openGoals);
     document.getElementById('btnScan').addEventListener('click', scanner.openScan);
     document.getElementById('btnAdd').addEventListener('click', () => openAdd());
     document.getElementById('btnQuickAdd').addEventListener('click', () => openAdd());
     document.getElementById('btnQuickFav').addEventListener('click', openFavs);
+    document.getElementById('btnProducts').addEventListener('click', products.openProducts);
     document.getElementById('btnHistory').addEventListener('click', openHistory);
     document.getElementById('btnFavs').addEventListener('click', openFavs);
+    products.bindEvents();
 
     document.getElementById('saveGoals').addEventListener('click', (event) => {
       event.preventDefault();
