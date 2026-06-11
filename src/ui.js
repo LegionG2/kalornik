@@ -1,5 +1,6 @@
-import { createProducts } from './products.js?v=5';
-import { createScanner } from './scanner.js?v=5';
+import { createBackup } from './backup.js?v=6';
+import { createProducts } from './products.js?v=6';
+import { createScanner } from './scanner.js?v=6';
 
 export function createUI({ state, store }) {
   const todayISO = () => {
@@ -20,6 +21,7 @@ export function createUI({ state, store }) {
     dlgFavs: document.getElementById('modalFavs'),
     dlgHist: document.getElementById('modalHistory'),
     dlgScan: document.getElementById('modalScan'),
+    dlgBackup: document.getElementById('modalBackup'),
     goalK: document.getElementById('goalKcal'),
     goalP: document.getElementById('goalProt'),
     goalC: document.getElementById('goalCarb'),
@@ -301,7 +303,27 @@ export function createUI({ state, store }) {
     utils: { n, fmt, esc, portionMacros },
   });
 
+  function refresh() {
+    ensureDay(todayISO());
+    renderEntries();
+    renderSummary();
+  }
+
+  const backup = createBackup({
+    state,
+    store,
+    openDialog,
+    closeDialog,
+    refresh,
+    refs: {
+      dlgBackup: refs.dlgBackup,
+      backupFile: document.getElementById('backupFile'),
+      backupStatus: document.getElementById('backupStatus'),
+    },
+  });
+
   function bindEvents() {
+    document.getElementById('btnBackup').addEventListener('click', backup.openBackup);
     document.getElementById('btnGoals').addEventListener('click', openGoals);
     document.getElementById('btnScan').addEventListener('click', scanner.openScan);
     document.getElementById('btnAdd').addEventListener('click', () => openAdd());
@@ -311,6 +333,7 @@ export function createUI({ state, store }) {
     document.getElementById('btnHistory').addEventListener('click', openHistory);
     document.getElementById('btnFavs').addEventListener('click', openFavs);
     products.bindEvents();
+    backup.bindEvents();
 
     document.getElementById('saveGoals').addEventListener('click', (event) => {
       event.preventDefault();
@@ -411,10 +434,8 @@ export function createUI({ state, store }) {
   }
 
   function init() {
-    ensureDay(todayISO());
     bindEvents();
-    renderEntries();
-    renderSummary();
+    refresh();
   }
 
   return { init, refs };

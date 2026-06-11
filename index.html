@@ -17,6 +17,7 @@
     <div class="bar">
       <div class="title">Kalornik</div>
       <div class="spacer"></div>
+      <button class="btn" id="btnBackup">Dane</button>
       <button class="btn" id="btnGoals">Cele</button>
       <button class="btn" id="btnScan">Skanuj</button>
       <button class="btn" id="btnAdd">Dodaj</button>
@@ -73,6 +74,19 @@
         <button class="btn" value="cancel">Anuluj</button>
         <button class="btn primary" id="saveGoals" value="default">Zapisz</button>
       </div>
+    </form>
+  </dialog>
+
+  <dialog id="modalBackup">
+    <form class="modal" method="dialog">
+      <h3>Dane</h3>
+      <div class="fields">
+        <button class="btn" id="btnExportData" type="button">Eksportuj dane</button>
+        <button class="btn" id="btnImportData" type="button">Importuj dane</button>
+        <input id="backupFile" type="file" accept="application/json,.json" style="display:none">
+        <div class="muted" id="backupStatus">Eksport zapisze kopię danych aplikacji do pliku JSON.</div>
+      </div>
+      <div class="actions"><button class="btn" value="cancel">Zamknij</button></div>
     </form>
   </dialog>
 
@@ -191,7 +205,7 @@
       </div>
     </form>
   </dialog>
-  <script type="module" src="src/app.js?v=5"></script>
+  <script type="module" src="src/app.js?v=6"></script>
 
 </body>
 </html>
