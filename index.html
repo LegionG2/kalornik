@@ -35,6 +35,7 @@
     <section class="card">
       <div class="row"><strong>Dzisiejsze wpisy</strong>
         <div class="tabs">
+          <button class="btn ghost" id="btnProducts">Moje produkty</button>
           <button class="btn ghost" id="btnFavs">Ulubione</button>
           <button class="btn ghost" id="btnHistory">Historia</button>
         </div>
@@ -106,6 +107,51 @@
     </form>
   </dialog>
 
+  <dialog id="modalProducts">
+    <form class="modal" method="dialog">
+      <h3>Moje produkty</h3>
+      <div id="productList" class="list"></div>
+      <div class="actions">
+        <button class="btn" id="btnNewProduct" type="button">Dodaj produkt</button>
+        <button class="btn" value="cancel">Zamknij</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="modalProductForm">
+    <form class="modal" method="dialog">
+      <h3 id="productModalTitle">Dodaj produkt</h3>
+      <div class="fields">
+        <div><label>Nazwa</label><input id="productName" placeholder="np. Twaróg półtłusty"></div>
+        <div class="row">
+          <div style="flex:1"><label>kcal / 100 g</label><input id="productKcal100" type="number" step="1" min="0"></div>
+          <div style="flex:1"><label>Białko / 100 g</label><input id="productProt100" type="number" step="0.1" min="0"></div>
+          <div style="flex:1"><label>Węglowodany / 100 g</label><input id="productCarb100" type="number" step="0.1" min="0"></div>
+          <div style="flex:1"><label>Tłuszcz / 100 g</label><input id="productFat100" type="number" step="0.1" min="0"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" value="cancel">Anuluj</button>
+        <button class="btn primary" id="btnSaveProduct" value="default">Zapisz</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="modalProductUse">
+    <form class="modal" method="dialog">
+      <h3>Użyj produktu</h3>
+      <div class="fields">
+        <div class="row"><strong id="useProductName">Produkt</strong></div>
+        <div><label>Porcja (g)</label><input id="useProductGrams" type="number" step="1" min="0" placeholder="np. 150"></div>
+        <div class="muted" id="useProductPreview">Makra porcji pojawią się tutaj…</div>
+      </div>
+      <div class="actions">
+        <button class="btn" value="cancel">Anuluj</button>
+        <button class="btn primary" id="btnAddProductEntry" value="default">Dodaj do dnia</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="modalHistory">
     <form class="modal" method="dialog">
       <h3>Historia</h3>
@@ -145,7 +191,7 @@
       </div>
     </form>
   </dialog>
-  <script type="module" src="src/app.js?v=3"></script>
+  <script type="module" src="src/app.js?v=5"></script>
 
 </body>
 </html>

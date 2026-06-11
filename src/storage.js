@@ -4,6 +4,7 @@ const defaultData = () => ({
   goals: { kcal: 0, prot: 0, carb: 0, fat: 0 },
   favs: [],
   entries: {},
+  products: [],
 });
 
 export const store = {
@@ -26,6 +27,7 @@ export const store = {
       goals: saved.goals || fallback.goals,
       favs: Array.isArray(saved.favs) ? saved.favs : fallback.favs,
       entries: saved.entries && typeof saved.entries === 'object' ? saved.entries : fallback.entries,
+      products: Array.isArray(saved.products) ? saved.products : fallback.products,
     };
 
     this.save(data);
