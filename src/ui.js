@@ -1,6 +1,6 @@
-import { createBackup } from './backup.js?v=10';
-import { createProducts } from './products.js?v=10';
-import { createScanner } from './scanner.js?v=10';
+import { createBackup } from './backup.js?v=11';
+import { createProducts } from './products.js?v=11';
+import { createScanner } from './scanner.js?v=11';
 
 const MEALS = [
   { id: 'breakfast', label: 'Śniadanie' },
