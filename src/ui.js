@@ -1,6 +1,6 @@
-import { createBackup } from './backup.js?v=11';
-import { createProducts } from './products.js?v=11';
-import { createScanner } from './scanner.js?v=11';
+import { createBackup } from './backup.js?v=12';
+import { createProducts } from './products.js?v=12';
+import { createScanner } from './scanner.js?v=12';
 
 const MEALS = [
   { id: 'breakfast', label: 'Śniadanie' },
@@ -148,6 +148,10 @@ export function createUI({ state, store }) {
     if (!state.s.entries[dateISO]) state.s.entries[dateISO] = [];
   }
 
+  function entryId() {
+    return crypto.randomUUID?.() || String(Date.now());
+  }
+
   function activeDateISO() {
     if (!state.activeDate) state.activeDate = todayISO();
     return state.activeDate;
@@ -262,7 +266,7 @@ export function createUI({ state, store }) {
         const macros = addMacros(totals, item);
         const row = document.createElement('div');
         row.className = 'item';
-        row.innerHTML = `<div><h4>${esc(item.name)}</h4><div class="meta">${fmt(n(item.grams), 0)} g • ${macros.kcal} kcal • B ${fmt(macros.prot, 1)} g • W ${fmt(macros.carb, 1)} g • T ${fmt(macros.fat, 1)} g</div></div><div class="row" style="gap:6px"><button class="btn" data-action="edit" data-id="${esc(item.id)}">Edytuj</button><button class="btn" data-action="del" data-id="${esc(item.id)}">Usuń</button></div>`;
+        row.innerHTML = `<div><h4>${esc(item.name)}</h4><div class="meta">${fmt(n(item.grams), 0)} g • ${macros.kcal} kcal • B ${fmt(macros.prot, 1)} g • W ${fmt(macros.carb, 1)} g • T ${fmt(macros.fat, 1)} g</div></div><div class="row" style="gap:6px"><button class="btn" data-action="copy-today" data-id="${esc(item.id)}">${isToday(dateISO) ? 'Duplikuj' : 'Kopiuj na dziś'}</button><button class="btn" data-action="edit" data-id="${esc(item.id)}">Edytuj</button><button class="btn" data-action="del" data-id="${esc(item.id)}">Usuń</button></div>`;
         group.appendChild(row);
       }
 
@@ -306,11 +310,28 @@ export function createUI({ state, store }) {
   function addEntry(obj) {
     const dateISO = activeDateISO();
     ensureDay(dateISO);
-    const item = { id: crypto.randomUUID?.() || String(Date.now()), ...obj, meal: normalizeMeal(obj.meal) };
+    const item = { id: entryId(), ...obj, meal: normalizeMeal(obj.meal) };
     state.s.entries[dateISO].push(item);
     store.save(state.s);
     renderEntries();
     renderSummary();
+  }
+
+  function copyEntryToToday(item) {
+    const dateISO = todayISO();
+    ensureDay(dateISO);
+    state.s.entries[dateISO].push({
+      id: entryId(),
+      name: item.name,
+      grams: n(item.grams),
+      kcal100: n(item.kcal100),
+      prot100: n(item.prot100),
+      carb100: n(item.carb100),
+      fat100: n(item.fat100),
+      meal: normalizeMeal(item.meal),
+    });
+    store.save(state.s);
+    setActiveDate(dateISO);
   }
 
   function upsertEntry(obj) {
@@ -558,6 +579,9 @@ export function createUI({ state, store }) {
       const index = list.findIndex((item) => item.id === id);
       if (index < 0) return;
 
+      if (button.dataset.action === 'copy-today') {
+        copyEntryToToday(list[index]);
+      }
       if (button.dataset.action === 'del') {
         list.splice(index, 1);
         store.save(state.s);
