@@ -1,16 +1,16 @@
 // sw.js — service worker dla Kalornika
-const CACHE = 'kalornik-v10';
+const CACHE = 'kalornik-v11';
 const ASSETS = [
   './',
   './index.html',
-  './src/styles.css?v=9',
-  './src/app.js?v=9',
-  './src/storage.js?v=9',
-  './src/ui.js?v=9',
-  './src/backup.js?v=9',
-  './src/products.js?v=9',
-  './src/scanner.js?v=9',
-  './src/pwa.js?v=9',
+  './src/styles.css?v=10',
+  './src/app.js?v=10',
+  './src/storage.js?v=10',
+  './src/ui.js?v=10',
+  './src/backup.js?v=10',
+  './src/products.js?v=10',
+  './src/scanner.js?v=10',
+  './src/pwa.js?v=10',
   './manifest.webmanifest',
   './icons/icon-180.png',
   './icons/icon-192.png',

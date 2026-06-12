@@ -1,6 +1,6 @@
-import { createBackup } from './backup.js?v=9';
-import { createProducts } from './products.js?v=9';
-import { createScanner } from './scanner.js?v=9';
+import { createBackup } from './backup.js?v=10';
+import { createProducts } from './products.js?v=10';
+import { createScanner } from './scanner.js?v=10';
 
 const MEALS = [
   { id: 'breakfast', label: 'Śniadanie' },
@@ -31,6 +31,7 @@ export function createUI({ state, store }) {
     dlgAdd: document.getElementById('modalAdd'),
     dlgFavs: document.getElementById('modalFavs'),
     dlgHist: document.getElementById('modalHistory'),
+    dlgWeek: document.getElementById('modalWeek'),
     dlgScan: document.getElementById('modalScan'),
     dlgBackup: document.getElementById('modalBackup'),
     goalK: document.getElementById('goalKcal'),
@@ -49,6 +50,11 @@ export function createUI({ state, store }) {
     calcPreview: document.getElementById('calcPreview'),
     favList: document.getElementById('favList'),
     histList: document.getElementById('historyList'),
+    weekRange: document.getElementById('weekRange'),
+    weekList: document.getElementById('weekList'),
+    weekTotal: document.getElementById('weekTotal'),
+    weekAverage: document.getElementById('weekAverage'),
+    weekGoalCompare: document.getElementById('weekGoalCompare'),
     video: document.getElementById('video'),
     scanStatus: document.getElementById('scanStatus'),
     eanManual: document.getElementById('eanManual'),
@@ -129,6 +135,10 @@ export function createUI({ state, store }) {
     return `${fmt(totals.kcal)} kcal • B ${fmt(totals.prot, 1)} g • W ${fmt(totals.carb, 1)} g • T ${fmt(totals.fat, 1)} g`;
   }
 
+  function entryCountText(count) {
+    return count === 1 ? '1 wpis' : `${count} wpisów`;
+  }
+
   function formatISODatePL(dateISO) {
     const [year, month, day] = String(dateISO).split('-');
     return year && month && day ? `${day}.${month}.${year}` : dateISO;
@@ -155,6 +165,25 @@ export function createUI({ state, store }) {
     const shiftedMonth = String(date.getMonth() + 1).padStart(2, '0');
     const shiftedDay = String(date.getDate()).padStart(2, '0');
     return `${shiftedYear}-${shiftedMonth}-${shiftedDay}`;
+  }
+
+  function dateFromISO(dateISO) {
+    const [year, month, day] = String(dateISO).split('-').map(Number);
+    return new Date(year, month - 1, day);
+  }
+
+  function dateToISO(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function weekDatesFor(dateISO) {
+    const start = dateFromISO(dateISO);
+    const day = start.getDay() || 7;
+    start.setDate(start.getDate() - day + 1);
+    return Array.from({ length: 7 }, (_, index) => shiftDate(dateToISO(start), index));
   }
 
   function setActiveDate(dateISO) {
@@ -369,6 +398,43 @@ export function createUI({ state, store }) {
     openDialog(refs.dlgHist);
   }
 
+  function openWeek() {
+    const dates = weekDatesFor(activeDateISO());
+    const total = emptyTotals();
+    refs.weekRange.textContent = `Tydzień: ${dates[0]} – ${dates[6]}`;
+    refs.weekList.innerHTML = '';
+
+    for (const dateISO of dates) {
+      const list = state.s.entries[dateISO] || [];
+      const totals = getTotals(dateISO);
+      total.kcal += totals.kcal;
+      total.prot += totals.prot;
+      total.carb += totals.carb;
+      total.fat += totals.fat;
+
+      const row = document.createElement('div');
+      row.className = 'item';
+      const dayLabel = dateFromISO(dateISO).toLocaleDateString('pl-PL', { weekday: 'long' });
+      const status = list.length ? totalsText(totals) : 'Brak wpisów';
+      row.innerHTML = `<div><h4>${dayLabel} ${dateISO}</h4><div class="meta">${status}</div></div><span class="chip">${list.length ? entryCountText(list.length) : 'pusto'}</span>`;
+      refs.weekList.appendChild(row);
+    }
+
+    const average = {
+      kcal: total.kcal / 7,
+      prot: total.prot / 7,
+      carb: total.carb / 7,
+      fat: total.fat / 7,
+    };
+    const goalKcal = n(state.s.goals.kcal);
+    refs.weekTotal.textContent = totalsText(total);
+    refs.weekAverage.textContent = totalsText(average);
+    refs.weekGoalCompare.textContent = goalKcal > 0
+      ? `Średnia kcal: ${fmt(average.kcal)} / ${fmt(goalKcal)} kcal celu dziennego (${fmt((average.kcal / goalKcal) * 100)}%).`
+      : 'Cel kcal nie jest ustawiony.';
+    openDialog(refs.dlgWeek);
+  }
+
   const scanner = createScanner({
     state,
     refs,
@@ -418,6 +484,7 @@ export function createUI({ state, store }) {
     refs.activeDate.addEventListener('change', () => setActiveDate(refs.activeDate.value));
     document.getElementById('btnProducts').addEventListener('click', products.openProducts);
     document.getElementById('btnHistory').addEventListener('click', openHistory);
+    document.getElementById('btnWeek').addEventListener('click', openWeek);
     document.getElementById('btnFavs').addEventListener('click', openFavs);
     products.bindEvents();
     backup.bindEvents();

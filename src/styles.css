@@ -30,6 +30,7 @@
 
     .list{display:grid;gap:10px}
     .meal-group{display:grid;gap:8px}
+    .week-summary{display:grid;gap:4px;border-top:1px solid var(--border);padding-top:10px}
     .item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
     .item h4{margin:0;font-size:15px}
     .item .meta{font-size:12px;color:var(--muted)}
