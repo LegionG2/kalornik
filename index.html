@@ -10,7 +10,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='56' fill='%230b0c10'/%3E%3Crect x='20' y='20' width='216' height='216' rx='44' fill='%2334d399'/%3E%3Ctext x='50%25' y='60%25' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='140' fill='white'%3EK%3C/text%3E%3C/svg%3E" />
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
-  <link rel="stylesheet" href="src/styles.css?v=9">
+  <link rel="stylesheet" href="src/styles.css?v=10">
 </head>
 <body>
   <header>
@@ -39,6 +39,7 @@
           <button class="btn ghost" id="btnProducts">Moje produkty</button>
           <button class="btn ghost" id="btnFavs">Ulubione</button>
           <button class="btn ghost" id="btnHistory">Historia</button>
+          <button class="btn ghost" id="btnWeek">Tydzień</button>
         </div>
       </div>
       <div class="row" style="margin-top:10px">
@@ -200,6 +201,26 @@
     </form>
   </dialog>
 
+  <dialog id="modalWeek">
+    <form class="modal" method="dialog">
+      <h3>Tydzień</h3>
+      <div class="fields">
+        <div class="muted" id="weekRange"></div>
+        <div id="weekList" class="list"></div>
+        <div class="week-summary">
+          <strong>Suma tygodnia</strong>
+          <div class="muted" id="weekTotal"></div>
+        </div>
+        <div class="week-summary">
+          <strong>Średnia dzienna</strong>
+          <div class="muted" id="weekAverage"></div>
+          <div class="muted" id="weekGoalCompare"></div>
+        </div>
+      </div>
+      <div class="actions"><button class="btn" value="cancel">Zamknij</button></div>
+    </form>
+  </dialog>
+
   <dialog id="modalScan">
     <form class="modal" method="dialog">
       <h3>Skaner EAN</h3>
@@ -231,7 +252,7 @@
       </div>
     </form>
   </dialog>
-  <script type="module" src="src/app.js?v=9"></script>
+  <script type="module" src="src/app.js?v=10"></script>
 
 </body>
 </html>
