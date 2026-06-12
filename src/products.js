@@ -184,6 +184,9 @@ export function createProducts({ state, store, addEntry, openDialog, closeDialog
     document.getElementById('btnSaveProduct').addEventListener('click', saveProduct);
     document.getElementById('btnAddProductEntry').addEventListener('click', addProductEntry);
     refs.productSearch.addEventListener('input', renderProducts);
+    refs.productSearch.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') event.preventDefault();
+    });
     refs.productSort.addEventListener('change', renderProducts);
     refs.useProductGrams.addEventListener('input', recalcUseProduct);
 
