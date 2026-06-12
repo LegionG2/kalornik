@@ -1,6 +1,6 @@
-import { store } from './storage.js?v=8';
-import { createUI } from './ui.js?v=8';
-import { registerServiceWorker, setupInstallPrompt } from './pwa.js?v=8';
+import { store } from './storage.js?v=9';
+import { createUI } from './ui.js?v=9';
+import { registerServiceWorker, setupInstallPrompt } from './pwa.js?v=9';
 
 const state = {
   s: store.init(),

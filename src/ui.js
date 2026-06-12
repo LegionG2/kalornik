@@ -1,6 +1,14 @@
-import { createBackup } from './backup.js?v=8';
-import { createProducts } from './products.js?v=8';
-import { createScanner } from './scanner.js?v=8';
+import { createBackup } from './backup.js?v=9';
+import { createProducts } from './products.js?v=9';
+import { createScanner } from './scanner.js?v=9';
+
+const MEALS = [
+  { id: 'breakfast', label: 'Śniadanie' },
+  { id: 'lunch', label: 'Obiad' },
+  { id: 'dinner', label: 'Kolacja' },
+  { id: 'snacks', label: 'Przekąski' },
+  { id: 'other', label: 'Inne' },
+];
 
 export function createUI({ state, store }) {
   const todayISO = () => {
@@ -36,6 +44,7 @@ export function createUI({ state, store }) {
     addP: document.getElementById('addProt100'),
     addC: document.getElementById('addCarb100'),
     addF: document.getElementById('addFat100'),
+    addMeal: document.getElementById('addMeal'),
     addPortion: document.getElementById('addPortion'),
     calcPreview: document.getElementById('calcPreview'),
     favList: document.getElementById('favList'),
@@ -61,6 +70,7 @@ export function createUI({ state, store }) {
   const fmt = (value, decimals = 0) => Number.isFinite(value) ? value.toFixed(decimals) : '0';
   const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const isSecureContextLike = () => location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+  const mealIds = new Set(MEALS.map((meal) => meal.id));
 
   function openDialog(dlg) {
     if (supportsDialog) {
@@ -96,6 +106,27 @@ export function createUI({ state, store }) {
       carb: +(n(per100.carb) * factor).toFixed(1),
       fat: +(n(per100.fat) * factor).toFixed(1),
     };
+  }
+
+  function normalizeMeal(meal) {
+    return mealIds.has(meal) ? meal : 'other';
+  }
+
+  function emptyTotals() {
+    return { kcal: 0, prot: 0, carb: 0, fat: 0 };
+  }
+
+  function addMacros(acc, item) {
+    const macros = portionMacros({ kcal: item.kcal100, prot: item.prot100, carb: item.carb100, fat: item.fat100 }, item.grams);
+    acc.kcal += macros.kcal;
+    acc.prot += macros.prot;
+    acc.carb += macros.carb;
+    acc.fat += macros.fat;
+    return macros;
+  }
+
+  function totalsText(totals) {
+    return `${fmt(totals.kcal)} kcal • B ${fmt(totals.prot, 1)} g • W ${fmt(totals.carb, 1)} g • T ${fmt(totals.fat, 1)} g`;
   }
 
   function formatISODatePL(dateISO) {
@@ -135,13 +166,9 @@ export function createUI({ state, store }) {
   function getTotals(dateISO) {
     const list = state.s.entries[dateISO] || [];
     return list.reduce((acc, item) => {
-      const macros = portionMacros({ kcal: item.kcal100, prot: item.prot100, carb: item.carb100, fat: item.fat100 }, item.grams);
-      acc.kcal += macros.kcal;
-      acc.prot += macros.prot;
-      acc.carb += macros.carb;
-      acc.fat += macros.fat;
+      addMacros(acc, item);
       return acc;
-    }, { kcal: 0, prot: 0, carb: 0, fat: 0 });
+    }, emptyTotals());
   }
 
   function renderSummary() {
@@ -173,7 +200,7 @@ export function createUI({ state, store }) {
       refs.targets.appendChild(el);
     }
 
-    refs.totalsText.textContent = `${fmt(totals.kcal)} kcal • B ${fmt(totals.prot, 1)} g • W ${fmt(totals.carb, 1)} g • T ${fmt(totals.fat, 1)} g`;
+    refs.totalsText.textContent = totalsText(totals);
   }
 
   function renderEntries() {
@@ -193,12 +220,25 @@ export function createUI({ state, store }) {
       return;
     }
 
-    for (const item of list) {
-      const macros = portionMacros({ kcal: item.kcal100, prot: item.prot100, carb: item.carb100, fat: item.fat100 }, item.grams);
-      const row = document.createElement('div');
-      row.className = 'item';
-      row.innerHTML = `<div><h4>${esc(item.name)}</h4><div class="meta">${fmt(n(item.grams), 0)} g • ${macros.kcal} kcal • B ${fmt(macros.prot, 1)} g • W ${fmt(macros.carb, 1)} g • T ${fmt(macros.fat, 1)} g</div></div><div class="row" style="gap:6px"><button class="btn" data-action="edit" data-id="${esc(item.id)}">Edytuj</button><button class="btn" data-action="del" data-id="${esc(item.id)}">Usuń</button></div>`;
-      refs.entries.appendChild(row);
+    for (const meal of MEALS) {
+      const mealItems = list.filter((item) => normalizeMeal(item.meal) === meal.id);
+      if (!mealItems.length) continue;
+
+      const totals = emptyTotals();
+      const group = document.createElement('div');
+      group.className = 'meal-group';
+      group.innerHTML = `<div class="row"><strong>${meal.label}</strong><span class="muted" data-meal-total>Razem: 0 kcal • B 0.0 g • W 0.0 g • T 0.0 g</span></div>`;
+
+      for (const item of mealItems) {
+        const macros = addMacros(totals, item);
+        const row = document.createElement('div');
+        row.className = 'item';
+        row.innerHTML = `<div><h4>${esc(item.name)}</h4><div class="meta">${fmt(n(item.grams), 0)} g • ${macros.kcal} kcal • B ${fmt(macros.prot, 1)} g • W ${fmt(macros.carb, 1)} g • T ${fmt(macros.fat, 1)} g</div></div><div class="row" style="gap:6px"><button class="btn" data-action="edit" data-id="${esc(item.id)}">Edytuj</button><button class="btn" data-action="del" data-id="${esc(item.id)}">Usuń</button></div>`;
+        group.appendChild(row);
+      }
+
+      group.querySelector('[data-meal-total]').textContent = `Razem: ${totalsText(totals)}`;
+      refs.entries.appendChild(group);
     }
   }
 
@@ -220,6 +260,7 @@ export function createUI({ state, store }) {
     refs.addP.value = prefill?.prot100 ?? '';
     refs.addC.value = prefill?.carb100 ?? '';
     refs.addF.value = prefill?.fat100 ?? '';
+    refs.addMeal.value = normalizeMeal(prefill?.meal);
     refs.addPortion.value = prefill?.grams ?? '';
     refs.calcPreview.textContent = 'Makra porcji pojawią się tutaj…';
     if (prefill?.grams) recalcManual();
@@ -236,7 +277,7 @@ export function createUI({ state, store }) {
   function addEntry(obj) {
     const dateISO = activeDateISO();
     ensureDay(dateISO);
-    const item = { id: crypto.randomUUID?.() || String(Date.now()), ...obj };
+    const item = { id: crypto.randomUUID?.() || String(Date.now()), ...obj, meal: normalizeMeal(obj.meal) };
     state.s.entries[dateISO].push(item);
     store.save(state.s);
     renderEntries();
@@ -247,17 +288,18 @@ export function createUI({ state, store }) {
     const dateISO = activeDateISO();
     ensureDay(dateISO);
     const list = state.s.entries[dateISO];
+    const entry = { ...obj, meal: normalizeMeal(obj.meal) };
 
     if (state.editingId) {
       const index = list.findIndex((item) => item.id === state.editingId);
       if (index >= 0) {
-        list[index] = { ...list[index], ...obj };
+        list[index] = { ...list[index], ...entry };
       } else {
-        addEntry(obj);
+        addEntry(entry);
       }
       state.editingId = null;
     } else {
-      addEntry(obj);
+      addEntry(entry);
       return;
     }
 
@@ -342,7 +384,7 @@ export function createUI({ state, store }) {
     addEntry,
     openDialog,
     closeDialog,
-    utils: { n, fmt, esc, portionMacros },
+    utils: { n, fmt, esc, normalizeMeal, portionMacros },
   });
 
   function refresh() {
@@ -392,6 +434,7 @@ export function createUI({ state, store }) {
       const obj = {
         name: refs.addName.value.trim() || 'Pozycja',
         grams: n(refs.addPortion.value),
+        meal: normalizeMeal(refs.addMeal.value),
         kcal100: n(refs.addK.value),
         prot100: n(refs.addP.value),
         carb100: n(refs.addC.value),
@@ -456,7 +499,7 @@ export function createUI({ state, store }) {
       }
       if (button.dataset.action === 'edit') {
         const item = list[index];
-        openAdd({ id: item.id, name: item.name, kcal100: item.kcal100, prot100: item.prot100, carb100: item.carb100, fat100: item.fat100, grams: item.grams });
+        openAdd({ id: item.id, name: item.name, kcal100: item.kcal100, prot100: item.prot100, carb100: item.carb100, fat100: item.fat100, grams: item.grams, meal: item.meal });
       }
     });
 
