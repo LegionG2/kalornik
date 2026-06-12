@@ -1,6 +1,6 @@
-import { store } from './storage.js?v=6';
-import { createUI } from './ui.js?v=6';
-import { registerServiceWorker, setupInstallPrompt } from './pwa.js?v=6';
+import { store } from './storage.js?v=8';
+import { createUI } from './ui.js?v=8';
+import { registerServiceWorker, setupInstallPrompt } from './pwa.js?v=8';
 
 const state = {
   s: store.init(),
@@ -11,6 +11,7 @@ const state = {
   detected: false,
   fallbackTimer: null,
   editingId: null,
+  activeDate: null,
 };
 
 function init() {

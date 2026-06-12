@@ -10,7 +10,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='56' fill='%230b0c10'/%3E%3Crect x='20' y='20' width='216' height='216' rx='44' fill='%2334d399'/%3E%3Ctext x='50%25' y='60%25' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='140' fill='white'%3EK%3C/text%3E%3C/svg%3E" />
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
-  <link rel="stylesheet" href="src/styles.css?v=3">
+  <link rel="stylesheet" href="src/styles.css?v=8">
 </head>
 <body>
   <header>
@@ -27,19 +27,25 @@
   <main class="grid">
     <section class="card" id="summary">
       <div class="row">
-        <strong>Dzisiaj</strong>
+        <strong id="summaryTitle">Dzisiaj</strong>
         <span class="muted" id="todayLabel"></span>
       </div>
       <div class="targets" id="targets"></div>
     </section>
 
     <section class="card">
-      <div class="row"><strong>Dzisiejsze wpisy</strong>
+      <div class="row"><strong id="entriesTitle">Dzisiejsze wpisy</strong>
         <div class="tabs">
           <button class="btn ghost" id="btnProducts">Moje produkty</button>
           <button class="btn ghost" id="btnFavs">Ulubione</button>
           <button class="btn ghost" id="btnHistory">Historia</button>
         </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost" id="btnPrevDay" type="button">←</button>
+        <input id="activeDate" type="date" aria-label="Data dziennika">
+        <button class="btn ghost" id="btnNextDay" type="button">→</button>
+        <button class="btn ghost" id="btnToday" type="button">Dzisiaj</button>
       </div>
       <div class="list" id="entries"></div>
       <div class="row" id="totalsRow" style="margin-top:8px">
@@ -205,7 +211,7 @@
       </div>
     </form>
   </dialog>
-  <script type="module" src="src/app.js?v=6"></script>
+  <script type="module" src="src/app.js?v=8"></script>
 
 </body>
 </html>

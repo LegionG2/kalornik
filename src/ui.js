@@ -1,6 +1,6 @@
-import { createBackup } from './backup.js?v=6';
-import { createProducts } from './products.js?v=6';
-import { createScanner } from './scanner.js?v=6';
+import { createBackup } from './backup.js?v=8';
+import { createProducts } from './products.js?v=8';
+import { createScanner } from './scanner.js?v=8';
 
 export function createUI({ state, store }) {
   const todayISO = () => {
@@ -12,8 +12,11 @@ export function createUI({ state, store }) {
   };
 
   const refs = {
+    summaryTitle: document.getElementById('summaryTitle'),
     targets: document.getElementById('targets'),
     todayLabel: document.getElementById('todayLabel'),
+    entriesTitle: document.getElementById('entriesTitle'),
+    activeDate: document.getElementById('activeDate'),
     entries: document.getElementById('entries'),
     totalsText: document.getElementById('totalsText'),
     dlgGoals: document.getElementById('modalGoals'),
@@ -104,6 +107,31 @@ export function createUI({ state, store }) {
     if (!state.s.entries[dateISO]) state.s.entries[dateISO] = [];
   }
 
+  function activeDateISO() {
+    if (!state.activeDate) state.activeDate = todayISO();
+    return state.activeDate;
+  }
+
+  function isToday(dateISO) {
+    return dateISO === todayISO();
+  }
+
+  function shiftDate(dateISO, days) {
+    const [year, month, day] = String(dateISO).split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    date.setDate(date.getDate() + days);
+    const shiftedYear = date.getFullYear();
+    const shiftedMonth = String(date.getMonth() + 1).padStart(2, '0');
+    const shiftedDay = String(date.getDate()).padStart(2, '0');
+    return `${shiftedYear}-${shiftedMonth}-${shiftedDay}`;
+  }
+
+  function setActiveDate(dateISO) {
+    if (!dateISO) return;
+    state.activeDate = dateISO;
+    refresh();
+  }
+
   function getTotals(dateISO) {
     const list = state.s.entries[dateISO] || [];
     return list.reduce((acc, item) => {
@@ -117,9 +145,13 @@ export function createUI({ state, store }) {
   }
 
   function renderSummary() {
-    refs.todayLabel.textContent = new Date().toLocaleDateString('pl-PL', { weekday: 'long', day: '2-digit', month: '2-digit' });
+    const dateISO = activeDateISO();
+    refs.summaryTitle.textContent = isToday(dateISO) ? 'Dzisiaj' : 'Wybrany dzień';
+    refs.todayLabel.textContent = isToday(dateISO)
+      ? new Date().toLocaleDateString('pl-PL', { weekday: 'long', day: '2-digit', month: '2-digit' })
+      : formatISODatePL(dateISO);
     const goals = state.s.goals;
-    const totals = getTotals(todayISO());
+    const totals = getTotals(dateISO);
     refs.targets.innerHTML = '';
 
     const blocks = [
@@ -145,13 +177,18 @@ export function createUI({ state, store }) {
   }
 
   function renderEntries() {
-    const list = state.s.entries[todayISO()] || [];
+    const dateISO = activeDateISO();
+    refs.entriesTitle.textContent = isToday(dateISO) ? 'Dzisiejsze wpisy' : `Wpisy z dnia ${dateISO}`;
+    refs.activeDate.value = dateISO;
+    const list = state.s.entries[dateISO] || [];
     refs.entries.innerHTML = '';
 
     if (!list.length) {
       const empty = document.createElement('div');
       empty.className = 'muted';
-      empty.textContent = 'Brak wpisów na dziś. Dodaj produkt ręcznie, z ulubionych albo przez EAN.';
+      empty.textContent = isToday(dateISO)
+        ? 'Brak wpisów na dziś. Dodaj produkt ręcznie, z ulubionych albo przez EAN.'
+        : 'Brak wpisów dla wybranej daty. Dodaj produkt ręcznie, z ulubionych albo przez EAN.';
       refs.entries.appendChild(empty);
       return;
     }
@@ -197,17 +234,19 @@ export function createUI({ state, store }) {
   }
 
   function addEntry(obj) {
-    ensureDay(todayISO());
+    const dateISO = activeDateISO();
+    ensureDay(dateISO);
     const item = { id: crypto.randomUUID?.() || String(Date.now()), ...obj };
-    state.s.entries[todayISO()].push(item);
+    state.s.entries[dateISO].push(item);
     store.save(state.s);
     renderEntries();
     renderSummary();
   }
 
   function upsertEntry(obj) {
-    ensureDay(todayISO());
-    const list = state.s.entries[todayISO()];
+    const dateISO = activeDateISO();
+    ensureDay(dateISO);
+    const list = state.s.entries[dateISO];
 
     if (state.editingId) {
       const index = list.findIndex((item) => item.id === state.editingId);
@@ -258,7 +297,10 @@ export function createUI({ state, store }) {
   }
 
   function openHistory() {
-    const dates = Object.keys(state.s.entries).sort().reverse();
+    const dates = Object.keys(state.s.entries)
+      .filter((dateISO) => (state.s.entries[dateISO] || []).length > 0)
+      .sort()
+      .reverse();
     refs.histList.innerHTML = '';
 
     if (!dates.length) {
@@ -304,7 +346,6 @@ export function createUI({ state, store }) {
   });
 
   function refresh() {
-    ensureDay(todayISO());
     renderEntries();
     renderSummary();
   }
@@ -329,6 +370,10 @@ export function createUI({ state, store }) {
     document.getElementById('btnAdd').addEventListener('click', () => openAdd());
     document.getElementById('btnQuickAdd').addEventListener('click', () => openAdd());
     document.getElementById('btnQuickFav').addEventListener('click', openFavs);
+    document.getElementById('btnPrevDay').addEventListener('click', () => setActiveDate(shiftDate(activeDateISO(), -1)));
+    document.getElementById('btnNextDay').addEventListener('click', () => setActiveDate(shiftDate(activeDateISO(), 1)));
+    document.getElementById('btnToday').addEventListener('click', () => setActiveDate(todayISO()));
+    refs.activeDate.addEventListener('change', () => setActiveDate(refs.activeDate.value));
     document.getElementById('btnProducts').addEventListener('click', products.openProducts);
     document.getElementById('btnHistory').addEventListener('click', openHistory);
     document.getElementById('btnFavs').addEventListener('click', openFavs);
@@ -399,7 +444,7 @@ export function createUI({ state, store }) {
       if (!button) return;
 
       const id = button.dataset.id;
-      const list = state.s.entries[todayISO()] || [];
+      const list = state.s.entries[activeDateISO()] || [];
       const index = list.findIndex((item) => item.id === id);
       if (index < 0) return;
 
