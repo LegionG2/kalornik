@@ -8,6 +8,8 @@ export function createProducts({ state, store, addEntry, openDialog, closeDialog
     dlgProducts: document.getElementById('modalProducts'),
     dlgProductForm: document.getElementById('modalProductForm'),
     dlgProductUse: document.getElementById('modalProductUse'),
+    productSearch: document.getElementById('productSearch'),
+    productSort: document.getElementById('productSort'),
     productList: document.getElementById('productList'),
     productTitle: document.getElementById('productModalTitle'),
     productName: document.getElementById('productName'),
@@ -39,6 +41,26 @@ export function createProducts({ state, store, addEntry, openDialog, closeDialog
     return state.s.products.find((product) => product.id === id);
   }
 
+  function filteredProducts() {
+    const query = refs.productSearch.value.trim().toLocaleLowerCase('pl-PL');
+    const products = state.s.products
+      .filter((product) => String(product.name ?? '').toLocaleLowerCase('pl-PL').includes(query))
+      .slice();
+
+    products.sort((a, b) => {
+      const sort = refs.productSort.value;
+      const nameA = String(a.name ?? '');
+      const nameB = String(b.name ?? '');
+      if (sort === 'name-desc') return nameB.localeCompare(nameA, 'pl-PL');
+      if (sort === 'kcal-desc') return n(b.kcal100) - n(a.kcal100) || nameA.localeCompare(nameB, 'pl-PL');
+      if (sort === 'kcal-asc') return n(a.kcal100) - n(b.kcal100) || nameA.localeCompare(nameB, 'pl-PL');
+      if (sort === 'prot-desc') return n(b.prot100) - n(a.prot100) || nameA.localeCompare(nameB, 'pl-PL');
+      return nameA.localeCompare(nameB, 'pl-PL');
+    });
+
+    return products;
+  }
+
   function renderProducts() {
     refs.productList.innerHTML = '';
 
@@ -50,7 +72,16 @@ export function createProducts({ state, store, addEntry, openDialog, closeDialog
       return;
     }
 
-    for (const product of state.s.products) {
+    const products = filteredProducts();
+    if (!products.length) {
+      const empty = document.createElement('div');
+      empty.className = 'muted';
+      empty.textContent = 'Brak produktów pasujących do wyszukiwania.';
+      refs.productList.appendChild(empty);
+      return;
+    }
+
+    for (const product of products) {
       const row = document.createElement('div');
       row.className = 'item';
       row.innerHTML = `<div><h4>${esc(product.name)}</h4><div class="meta">100 g → ${fmt(n(product.kcal100), 0)} kcal • B ${fmt(n(product.prot100), 1)} g • W ${fmt(n(product.carb100), 1)} g • T ${fmt(n(product.fat100), 1)} g</div></div><div class="row" style="gap:6px"><button class="btn" data-action="use" data-id="${esc(product.id)}">Użyj</button><button class="btn" data-action="edit" data-id="${esc(product.id)}">Edytuj</button><button class="btn" data-action="del" data-id="${esc(product.id)}">Usuń</button></div>`;
@@ -59,6 +90,8 @@ export function createProducts({ state, store, addEntry, openDialog, closeDialog
   }
 
   function openProducts() {
+    refs.productSearch.value = '';
+    refs.productSort.value = 'name-asc';
     renderProducts();
     openDialog(refs.dlgProducts);
   }
@@ -150,6 +183,8 @@ export function createProducts({ state, store, addEntry, openDialog, closeDialog
     document.getElementById('btnNewProduct').addEventListener('click', () => openProductForm());
     document.getElementById('btnSaveProduct').addEventListener('click', saveProduct);
     document.getElementById('btnAddProductEntry').addEventListener('click', addProductEntry);
+    refs.productSearch.addEventListener('input', renderProducts);
+    refs.productSort.addEventListener('change', renderProducts);
     refs.useProductGrams.addEventListener('input', recalcUseProduct);
 
     refs.productList.addEventListener('click', (event) => {
