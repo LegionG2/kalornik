@@ -10,7 +10,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='56' fill='%230b0c10'/%3E%3Crect x='20' y='20' width='216' height='216' rx='44' fill='%2334d399'/%3E%3Ctext x='50%25' y='60%25' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='140' fill='white'%3EK%3C/text%3E%3C/svg%3E" />
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
-  <link rel="stylesheet" href="src/styles.css?v=8">
+  <link rel="stylesheet" href="src/styles.css?v=9">
 </head>
 <body>
   <header>
@@ -107,6 +107,16 @@
           <div style="flex:1"><label>Węglowodany / 100 g</label><input id="addCarb100" type="number" step="0.1" min="0"></div>
           <div style="flex:1"><label>Tłuszcz / 100 g</label><input id="addFat100" type="number" step="0.1" min="0"></div>
         </div>
+        <div>
+          <label>Posiłek</label>
+          <select id="addMeal">
+            <option value="breakfast">Śniadanie</option>
+            <option value="lunch">Obiad</option>
+            <option value="dinner">Kolacja</option>
+            <option value="snacks">Przekąski</option>
+            <option value="other">Inne</option>
+          </select>
+        </div>
         <div><label>Porcja (g)</label><input id="addPortion" type="number" step="1" min="0" placeholder="np. 70"></div>
         <button class="btn" id="btnRecalc" type="button">Przelicz</button>
         <div class="muted" id="calcPreview">Makra porcji pojawią się tutaj…</div>
@@ -162,6 +172,16 @@
       <h3>Użyj produktu</h3>
       <div class="fields">
         <div class="row"><strong id="useProductName">Produkt</strong></div>
+        <div>
+          <label>Posiłek</label>
+          <select id="useProductMeal">
+            <option value="breakfast">Śniadanie</option>
+            <option value="lunch">Obiad</option>
+            <option value="dinner">Kolacja</option>
+            <option value="snacks">Przekąski</option>
+            <option value="other">Inne</option>
+          </select>
+        </div>
         <div><label>Porcja (g)</label><input id="useProductGrams" type="number" step="1" min="0" placeholder="np. 150"></div>
         <div class="muted" id="useProductPreview">Makra porcji pojawią się tutaj…</div>
       </div>
@@ -211,7 +231,7 @@
       </div>
     </form>
   </dialog>
-  <script type="module" src="src/app.js?v=8"></script>
+  <script type="module" src="src/app.js?v=9"></script>
 
 </body>
 </html>

@@ -1,5 +1,5 @@
 export function createProducts({ state, store, addEntry, openDialog, closeDialog, utils }) {
-  const { n, fmt, esc, portionMacros } = utils;
+  const { n, fmt, esc, normalizeMeal, portionMacros } = utils;
 
   let editingProductId = null;
   let usingProductId = null;
@@ -16,6 +16,7 @@ export function createProducts({ state, store, addEntry, openDialog, closeDialog
     productC: document.getElementById('productCarb100'),
     productF: document.getElementById('productFat100'),
     useProductName: document.getElementById('useProductName'),
+    useProductMeal: document.getElementById('useProductMeal'),
     useProductGrams: document.getElementById('useProductGrams'),
     useProductPreview: document.getElementById('useProductPreview'),
   };
@@ -101,6 +102,7 @@ export function createProducts({ state, store, addEntry, openDialog, closeDialog
   function openUseProduct(product) {
     usingProductId = product.id;
     refs.useProductName.textContent = product.name;
+    refs.useProductMeal.value = 'other';
     refs.useProductGrams.value = '';
     refs.useProductPreview.textContent = 'Makra porcji pojawią się tutaj…';
     closeDialog(refs.dlgProducts);
@@ -135,6 +137,7 @@ export function createProducts({ state, store, addEntry, openDialog, closeDialog
     addEntry({
       name: product.name,
       grams,
+      meal: normalizeMeal(refs.useProductMeal.value),
       kcal100: n(product.kcal100),
       prot100: n(product.prot100),
       carb100: n(product.carb100),

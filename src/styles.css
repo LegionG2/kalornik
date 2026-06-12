@@ -29,6 +29,7 @@
     .muted{color:var(--muted);font-size:12px}
 
     .list{display:grid;gap:10px}
+    .meal-group{display:grid;gap:8px}
     .item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
     .item h4{margin:0;font-size:15px}
     .item .meta{font-size:12px;color:var(--muted)}
@@ -45,7 +46,7 @@
     .modal h3{margin:0 0 8px 0}
     .fields{display:grid;gap:10px}
     label{font-size:12px;color:var(--muted)}
-    input{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0e1117;color:var(--text)}
+    input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:#0e1117;color:var(--text)}
     #activeDate{width:auto;min-width:150px}
     .actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 
