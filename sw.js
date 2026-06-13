@@ -1,5 +1,5 @@
 // sw.js — service worker dla Kalornika
-const CACHE = 'kalornik-v20';
+const CACHE = 'kalornik-v21';
 const ASSETS = [
   './',
   './index.html',
