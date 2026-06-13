@@ -29,17 +29,18 @@ main{max-width:920px;margin:0 auto;padding:18px 12px 26vh}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
 
 #summary .row:first-child{margin-bottom:12px}
+#targets{display:none}
 .targets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
 .target{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:0}
 .target .row{align-items:flex-start;gap:6px}
 .target .muted{line-height:1.35;text-align:right}
-#targets .target .muted{display:none}
-#remainingSection{display:grid;gap:8px;margin-top:10px!important}
+#remainingSection{margin-top:0!important}
 #remainingSection>strong{display:none}
-#remainingTargets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}
-#remainingTargets .target{background:transparent;border:0;border-radius:0;padding:0;gap:2px}
-#remainingTargets .target .row{display:grid;gap:2px;justify-content:stretch}
-#remainingTargets .target .muted{text-align:left;color:#c5cedb}
+#remainingTargets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+#remainingTargets .target{min-height:76px;justify-content:center}
+#remainingTargets .target .row{display:grid;gap:6px;justify-content:stretch}
+#remainingTargets .target .row>span:first-child{font-size:16px;color:var(--text);font-weight:700}
+#remainingTargets .target .muted{text-align:left;color:#c5cedb;font-size:13px;line-height:1.4}
 .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 
 .progress{height:10px;background:#090b10;border:1px solid var(--border);border-radius:999px;overflow:hidden}
@@ -85,8 +86,7 @@ input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--b
 .footerbar .btn{flex:1;justify-content:center}
 
 @media (min-width:700px){
-  .targets{grid-template-columns:repeat(4,minmax(0,1fr))}
-  #remainingTargets{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #remainingTargets{grid-template-columns:repeat(4,minmax(0,1fr))}
   .footerbar{position:sticky;bottom:auto}
 }
 
