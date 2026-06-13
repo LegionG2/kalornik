@@ -29,11 +29,17 @@ main{max-width:920px;margin:0 auto;padding:18px 12px 26vh}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
 
 #summary .row:first-child{margin-bottom:12px}
-#remainingSection{display:none}
 .targets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
 .target{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:0}
 .target .row{align-items:flex-start;gap:6px}
 .target .muted{line-height:1.35;text-align:right}
+#targets .target .muted{display:none}
+#remainingSection{display:grid;gap:8px;margin-top:10px!important}
+#remainingSection>strong{display:none}
+#remainingTargets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 14px}
+#remainingTargets .target{background:transparent;border:0;border-radius:0;padding:0;gap:2px}
+#remainingTargets .target .row{display:grid;gap:2px;justify-content:stretch}
+#remainingTargets .target .muted{text-align:left;color:#c5cedb}
 .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 
 .progress{height:10px;background:#090b10;border:1px solid var(--border);border-radius:999px;overflow:hidden}
@@ -44,6 +50,8 @@ main{max-width:920px;margin:0 auto;padding:18px 12px 26vh}
 
 .list{display:grid;gap:10px}
 .list>.muted{background:var(--panel);border:1px dashed var(--border);border-radius:12px;padding:12px;color:#c5cedb}
+#entries>.muted{font-size:0}
+#entries>.muted::before{content:"Brak wpisów na ten dzień. Dodaj produkt, danie albo szablon posiłku.";font-size:12px}
 .meal-group{display:grid;gap:8px}
 .week-summary{display:grid;gap:4px;border-top:1px solid var(--border);padding-top:10px}
 .item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
@@ -78,6 +86,7 @@ input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--b
 
 @media (min-width:700px){
   .targets{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #remainingTargets{grid-template-columns:repeat(2,minmax(0,1fr))}
   .footerbar{position:sticky;bottom:auto}
 }
 
@@ -86,6 +95,7 @@ input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--b
   .bar .btn{padding:9px 10px;font-size:13px}
   .tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
   .targets{grid-template-columns:1fr}
+  #remainingTargets{grid-template-columns:1fr}
   main.grid>.card:nth-of-type(2)>.row[style*="margin-top:10px"]{display:grid;grid-template-columns:auto 1fr auto;gap:8px}
   #btnToday{grid-column:1/-1;justify-content:center}
   .item{grid-template-columns:1fr;align-items:start}
