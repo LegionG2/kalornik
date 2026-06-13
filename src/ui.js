@@ -1,7 +1,8 @@
-import { createBackup } from './backup.js?v=14';
-import { createProducts } from './products.js?v=14';
-import { createScanner } from './scanner.js?v=14';
-import { createTemplates } from './templates.js?v=14';
+import { createBackup } from './backup.js?v=15';
+import { createProducts } from './products.js?v=15';
+import { createScanner } from './scanner.js?v=15';
+import { createTemplates } from './templates.js?v=15';
+import { createDishes } from './dishes.js?v=15';
 
 const MEALS = [
   { id: 'breakfast', label: 'Śniadanie' },
@@ -23,6 +24,7 @@ export function createUI({ state, store }) {
   const refs = {
     summaryTitle: document.getElementById('summaryTitle'),
     targets: document.getElementById('targets'),
+    remainingTargets: document.getElementById('remainingTargets'),
     todayLabel: document.getElementById('todayLabel'),
     entriesTitle: document.getElementById('entriesTitle'),
     activeDate: document.getElementById('activeDate'),
@@ -214,6 +216,7 @@ export function createUI({ state, store }) {
     const goals = state.s.goals;
     const totals = getTotals(dateISO);
     refs.targets.innerHTML = '';
+    refs.remainingTargets.innerHTML = '';
 
     const blocks = [
       { label: 'Kalorie', val: totals.kcal, goal: goals.kcal, unit: 'kcal', decimals: 0 },
@@ -232,6 +235,19 @@ export function createUI({ state, store }) {
       el.innerHTML = `<div class="row"><span>${block.label}</span><span class="muted">${fmt(block.val, block.decimals)} / ${fmt(block.goal, 0)} ${block.unit}${diffHtml}</span></div>
       <div class="progress ${over ? 'over' : ''}"><i style="width:${pct}%"></i></div>`;
       refs.targets.appendChild(el);
+
+      const remaining = block.goal > 0 ? block.goal - block.val : null;
+      const remainingEl = document.createElement('div');
+      remainingEl.className = 'target';
+      const eatenText = `${fmt(block.val, block.decimals)} ${block.unit}`;
+      if (remaining === null) {
+        remainingEl.innerHTML = `<div class="row"><span>${block.label}</span><span class="muted">zjedzono ${eatenText}</span></div>`;
+      } else if (remaining >= 0) {
+        remainingEl.innerHTML = `<div class="row"><span>${block.label}</span><span class="muted">zjedzono ${eatenText} / cel ${fmt(block.goal, 0)} ${block.unit} / zostało ${fmt(remaining, block.decimals)} ${block.unit}</span></div>`;
+      } else {
+        remainingEl.innerHTML = `<div class="row"><span>${block.label}</span><span class="muted">zjedzono ${eatenText} / cel ${fmt(block.goal, 0)} ${block.unit} / przekroczono ${fmt(Math.abs(remaining), block.decimals)} ${block.unit}</span></div>`;
+      }
+      refs.remainingTargets.appendChild(remainingEl);
     }
 
     refs.totalsText.textContent = totalsText(totals);
@@ -475,6 +491,15 @@ export function createUI({ state, store }) {
     utils: { n, fmt, esc, normalizeMeal, portionMacros },
   });
 
+  const dishes = createDishes({
+    state,
+    store,
+    addEntry,
+    openDialog,
+    closeDialog,
+    utils: { n, fmt, esc, normalizeMeal },
+  });
+
   const templates = createTemplates({
     state,
     store,
@@ -517,11 +542,13 @@ export function createUI({ state, store }) {
     document.getElementById('btnToday').addEventListener('click', () => setActiveDate(todayISO()));
     refs.activeDate.addEventListener('change', () => setActiveDate(refs.activeDate.value));
     document.getElementById('btnProducts').addEventListener('click', products.openProducts);
+    document.getElementById('btnDishes').addEventListener('click', dishes.openDishes);
     document.getElementById('btnTemplates').addEventListener('click', templates.openTemplates);
     document.getElementById('btnHistory').addEventListener('click', openHistory);
     document.getElementById('btnWeek').addEventListener('click', openWeek);
     document.getElementById('btnFavs').addEventListener('click', openFavs);
     products.bindEvents();
+    dishes.bindEvents();
     templates.bindEvents();
     backup.bindEvents();
 

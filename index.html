@@ -10,7 +10,7 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='56' fill='%230b0c10'/%3E%3Crect x='20' y='20' width='216' height='216' rx='44' fill='%2334d399'/%3E%3Ctext x='50%25' y='60%25' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-size='140' fill='white'%3EK%3C/text%3E%3C/svg%3E" />
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
-  <link rel="stylesheet" href="src/styles.css?v=14">
+  <link rel="stylesheet" href="src/styles.css?v=15">
 </head>
 <body>
   <header>
@@ -31,12 +31,17 @@
         <span class="muted" id="todayLabel"></span>
       </div>
       <div class="targets" id="targets"></div>
+      <div class="fields" id="remainingSection" style="margin-top:12px">
+        <strong>Zostało do celu</strong>
+        <div class="targets" id="remainingTargets"></div>
+      </div>
     </section>
 
     <section class="card">
       <div class="row"><strong id="entriesTitle">Dzisiejsze wpisy</strong>
         <div class="tabs">
           <button class="btn ghost" id="btnProducts">Moje produkty</button>
+          <button class="btn ghost" id="btnDishes">Moje dania</button>
           <button class="btn ghost" id="btnFavs">Ulubione</button>
           <button class="btn ghost" id="btnTemplates">Szablony</button>
           <button class="btn ghost" id="btnHistory">Historia</button>
@@ -156,6 +161,67 @@
       <div class="actions">
         <button class="btn" value="cancel">Anuluj</button>
         <button class="btn primary" id="btnSaveTemplateName" value="default">Zapisz</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="modalDishes">
+    <form class="modal" method="dialog">
+      <h3>Moje dania</h3>
+      <div id="dishList" class="list"></div>
+      <div class="actions">
+        <button class="btn" id="btnNewDish" type="button">Dodaj danie</button>
+        <button class="btn" value="cancel">Zamknij</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="modalDishForm">
+    <form class="modal" method="dialog">
+      <h3>Dodaj danie</h3>
+      <div class="fields">
+        <div><label>Nazwa dania</label><input id="dishName" placeholder="np. Jajecznica moja"></div>
+        <div class="row">
+          <div style="flex:1"><label>Składnik</label><input id="dishIngredientName" placeholder="np. Jajka"></div>
+          <div style="flex:1"><label>Gramatura</label><input id="dishIngredientGrams" type="number" step="1" min="0"></div>
+        </div>
+        <div class="row">
+          <div style="flex:1"><label>kcal</label><input id="dishIngredientKcal" type="number" step="1" min="0"></div>
+          <div style="flex:1"><label>Białko</label><input id="dishIngredientProt" type="number" step="0.1" min="0"></div>
+          <div style="flex:1"><label>Węglowodany</label><input id="dishIngredientCarb" type="number" step="0.1" min="0"></div>
+          <div style="flex:1"><label>Tłuszcz</label><input id="dishIngredientFat" type="number" step="0.1" min="0"></div>
+        </div>
+        <button class="btn" id="btnAddDishIngredient" type="button">Dodaj składnik</button>
+        <div id="dishIngredientList" class="list"></div>
+        <div class="muted" id="dishFormTotals">Razem: 0 kcal • B 0.0 g • W 0.0 g • T 0.0 g</div>
+      </div>
+      <div class="actions">
+        <button class="btn" value="cancel">Anuluj</button>
+        <button class="btn primary" id="btnSaveDish" value="default">Zapisz danie</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="modalDishUse">
+    <form class="modal" method="dialog">
+      <h3>Dodaj danie do dnia</h3>
+      <div class="fields">
+        <div class="row"><strong id="useDishName">Danie</strong></div>
+        <div>
+          <label>Posiłek</label>
+          <select id="useDishMeal">
+            <option value="breakfast">Śniadanie</option>
+            <option value="lunch">Obiad</option>
+            <option value="dinner">Kolacja</option>
+            <option value="snacks">Przekąski</option>
+            <option value="other">Inne</option>
+          </select>
+        </div>
+        <div class="muted" id="useDishPreview">Makra dania pojawią się tutaj…</div>
+      </div>
+      <div class="actions">
+        <button class="btn" value="cancel">Anuluj</button>
+        <button class="btn primary" id="btnAddDishEntry" value="default">Dodaj do dnia</button>
       </div>
     </form>
   </dialog>
@@ -284,7 +350,7 @@
       </div>
     </form>
   </dialog>
-  <script type="module" src="src/app.js?v=14"></script>
+  <script type="module" src="src/app.js?v=15"></script>
 
 </body>
 </html>
