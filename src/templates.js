@@ -8,6 +8,7 @@ export function createTemplates({ state, store, openDialog, closeDialog, refresh
     templateName: document.getElementById('templateName'),
     templateList: document.getElementById('templateList'),
   };
+  refs.templateNameForm = refs.dlgTemplateName.querySelector('form');
 
   function templateId() {
     return crypto.randomUUID?.() || String(Date.now());
@@ -123,7 +124,7 @@ export function createTemplates({ state, store, openDialog, closeDialog, refresh
   }
 
   function bindEvents() {
-    document.getElementById('btnSaveTemplateName').addEventListener('click', savePendingTemplate);
+    refs.templateNameForm.addEventListener('submit', savePendingTemplate);
     refs.dlgTemplateName.addEventListener('close', () => {
       pendingTemplate = null;
     });
