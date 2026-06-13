@@ -21,6 +21,16 @@ export function createDishes({ state, store, addEntry, openDialog, closeDialog, 
     useDishMeal: document.getElementById('useDishMeal'),
     useDishPreview: document.getElementById('useDishPreview'),
   };
+  refs.dishForm = refs.dlgDishForm.querySelector('form');
+  refs.dishUseForm = refs.dlgDishUse.querySelector('form');
+  refs.ingredientFields = [
+    refs.ingredientName,
+    refs.ingredientGrams,
+    refs.ingredientKcal,
+    refs.ingredientProt,
+    refs.ingredientCarb,
+    refs.ingredientFat,
+  ];
 
   function dishId() {
     return crypto.randomUUID?.() || String(Date.now());
@@ -58,7 +68,7 @@ export function createDishes({ state, store, addEntry, openDialog, closeDialog, 
     for (const [index, ingredient] of draftIngredients.entries()) {
       const row = document.createElement('div');
       row.className = 'item';
-      row.innerHTML = `<div><h4>${esc(ingredient.name)}</h4><div class="meta">${fmt(n(ingredient.grams))} g • ${fmt(n(ingredient.kcal))} kcal • B ${fmt(n(ingredient.prot), 1)} g • W ${fmt(n(ingredient.carb), 1)} g • T ${fmt(n(ingredient.fat), 1)} g</div></div><button class="btn" data-action="del-ingredient" data-idx="${index}">Usuń</button>`;
+      row.innerHTML = `<div><h4>${esc(ingredient.name)}</h4><div class="meta">${fmt(n(ingredient.grams))} g • ${fmt(n(ingredient.kcal))} kcal • B ${fmt(n(ingredient.prot), 1)} g • W ${fmt(n(ingredient.carb), 1)} g • T ${fmt(n(ingredient.fat), 1)} g</div></div><button class="btn" type="button" data-action="del-ingredient" data-idx="${index}">Usuń</button>`;
       refs.ingredientList.appendChild(row);
     }
 
@@ -80,7 +90,7 @@ export function createDishes({ state, store, addEntry, openDialog, closeDialog, 
       const totals = totalsFor(dish.ingredients || []);
       const row = document.createElement('div');
       row.className = 'item';
-      row.innerHTML = `<div><h4>${esc(dish.name)}</h4><div class="meta">${(dish.ingredients || []).length} składników • ${fmt(totals.grams)} g • ${totalsText(totals)}</div></div><div class="row" style="gap:6px"><button class="btn" data-action="use" data-id="${esc(dish.id)}">Dodaj do dnia</button><button class="btn" data-action="del" data-id="${esc(dish.id)}">Usuń</button></div>`;
+      row.innerHTML = `<div><h4>${esc(dish.name)}</h4><div class="meta">${(dish.ingredients || []).length} składników • ${fmt(totals.grams)} g • ${totalsText(totals)}</div></div><div class="row" style="gap:6px"><button class="btn" type="button" data-action="use" data-id="${esc(dish.id)}">Dodaj do dnia</button><button class="btn" type="button" data-action="del" data-id="${esc(dish.id)}">Usuń</button></div>`;
       refs.dishList.appendChild(row);
     }
   }
@@ -189,8 +199,16 @@ export function createDishes({ state, store, addEntry, openDialog, closeDialog, 
   function bindEvents() {
     document.getElementById('btnNewDish').addEventListener('click', openDishForm);
     document.getElementById('btnAddDishIngredient').addEventListener('click', addIngredient);
-    document.getElementById('btnSaveDish').addEventListener('click', saveDish);
-    document.getElementById('btnAddDishEntry').addEventListener('click', addDishEntry);
+    refs.dishForm.addEventListener('submit', saveDish);
+    refs.dishUseForm.addEventListener('submit', addDishEntry);
+
+    for (const field of refs.ingredientFields) {
+      field.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        addIngredient();
+      });
+    }
 
     refs.ingredientList.addEventListener('click', (event) => {
       const button = event.target.closest('button');
