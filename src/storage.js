@@ -6,6 +6,7 @@ const defaultData = () => ({
   entries: {},
   products: [],
   templates: [],
+  dishes: [],
 });
 
 export const store = {
@@ -30,6 +31,7 @@ export const store = {
       entries: saved.entries && typeof saved.entries === 'object' ? saved.entries : fallback.entries,
       products: Array.isArray(saved.products) ? saved.products : fallback.products,
       templates: Array.isArray(saved.templates) ? saved.templates : fallback.templates,
+      dishes: Array.isArray(saved.dishes) ? saved.dishes : fallback.dishes,
     };
 
     this.save(data);
