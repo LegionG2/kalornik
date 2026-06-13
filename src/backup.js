@@ -24,6 +24,7 @@ export function createBackup({ state, store, openDialog, closeDialog, refresh, r
     if (!isObject(data.entries)) return false;
     if (!Array.isArray(data.favs)) return false;
     if (!Array.isArray(data.products)) return false;
+    if (data.templates !== undefined && !Array.isArray(data.templates)) return false;
     return true;
   }
 
@@ -34,6 +35,7 @@ export function createBackup({ state, store, openDialog, closeDialog, refresh, r
       entries: data.entries,
       favs: data.favs,
       products: data.products,
+      templates: Array.isArray(data.templates) ? data.templates : [],
     };
   }
 

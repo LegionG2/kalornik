@@ -1,6 +1,7 @@
-import { createBackup } from './backup.js?v=12';
-import { createProducts } from './products.js?v=12';
-import { createScanner } from './scanner.js?v=12';
+import { createBackup } from './backup.js?v=14';
+import { createProducts } from './products.js?v=14';
+import { createScanner } from './scanner.js?v=14';
+import { createTemplates } from './templates.js?v=14';
 
 const MEALS = [
   { id: 'breakfast', label: 'Śniadanie' },
@@ -260,7 +261,7 @@ export function createUI({ state, store }) {
       const totals = emptyTotals();
       const group = document.createElement('div');
       group.className = 'meal-group';
-      group.innerHTML = `<div class="row"><strong>${meal.label}</strong><span class="muted" data-meal-total>Razem: 0 kcal • B 0.0 g • W 0.0 g • T 0.0 g</span></div>`;
+      group.innerHTML = `<div class="row"><strong>${meal.label}</strong><div class="row" style="gap:6px"><span class="muted" data-meal-total>Razem: 0 kcal • B 0.0 g • W 0.0 g • T 0.0 g</span><button class="btn" data-action="save-template" data-meal="${meal.id}">Zapisz jako szablon</button></div></div>`;
 
       for (const item of mealItems) {
         const macros = addMacros(totals, item);
@@ -474,6 +475,18 @@ export function createUI({ state, store }) {
     utils: { n, fmt, esc, normalizeMeal, portionMacros },
   });
 
+  const templates = createTemplates({
+    state,
+    store,
+    openDialog,
+    closeDialog,
+    refresh,
+    getActiveDate: activeDateISO,
+    ensureDay,
+    entryId,
+    utils: { n, fmt, esc, normalizeMeal, portionMacros },
+  });
+
   function refresh() {
     renderEntries();
     renderSummary();
@@ -504,10 +517,12 @@ export function createUI({ state, store }) {
     document.getElementById('btnToday').addEventListener('click', () => setActiveDate(todayISO()));
     refs.activeDate.addEventListener('change', () => setActiveDate(refs.activeDate.value));
     document.getElementById('btnProducts').addEventListener('click', products.openProducts);
+    document.getElementById('btnTemplates').addEventListener('click', templates.openTemplates);
     document.getElementById('btnHistory').addEventListener('click', openHistory);
     document.getElementById('btnWeek').addEventListener('click', openWeek);
     document.getElementById('btnFavs').addEventListener('click', openFavs);
     products.bindEvents();
+    templates.bindEvents();
     backup.bindEvents();
 
     document.getElementById('saveGoals').addEventListener('click', (event) => {
@@ -573,6 +588,13 @@ export function createUI({ state, store }) {
     refs.entries.addEventListener('click', (event) => {
       const button = event.target.closest('button');
       if (!button) return;
+
+      if (button.dataset.action === 'save-template') {
+        const list = state.s.entries[activeDateISO()] || [];
+        const mealItems = list.filter((item) => normalizeMeal(item.meal) === button.dataset.meal);
+        templates.saveMealTemplate(button.dataset.meal, mealItems);
+        return;
+      }
 
       const id = button.dataset.id;
       const list = state.s.entries[activeDateISO()] || [];
