@@ -29,18 +29,14 @@ main{max-width:920px;margin:0 auto;padding:18px 12px 26vh}
 .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow)}
 
 #summary .row:first-child{margin-bottom:12px}
-#targets{display:none}
+#targets{display:grid}
 .targets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
-.target{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:0}
-.target .row{align-items:flex-start;gap:6px}
-.target .muted{line-height:1.35;text-align:right}
-#remainingSection{margin-top:0!important}
-#remainingSection>strong{display:none}
-#remainingTargets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
-#remainingTargets .target{min-height:76px;justify-content:center}
-#remainingTargets .target .row{display:grid;gap:6px;justify-content:stretch}
-#remainingTargets .target .row>span:first-child{font-size:16px;color:var(--text);font-weight:700}
-#remainingTargets .target .muted{text-align:left;color:#c5cedb;font-size:13px;line-height:1.4}
+.target{display:flex;flex-direction:column;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:0}
+.target .row{display:grid;gap:6px;align-items:flex-start;justify-content:stretch}
+.target .row>span:first-child{font-size:16px;color:var(--text);font-weight:700}
+.target .muted{line-height:1.35;text-align:left;color:#c5cedb;font-size:12px}
+#remainingSection{display:none!important}
+#remainingTargets{display:none}
 .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 
 .progress{height:10px;background:#090b10;border:1px solid var(--border);border-radius:999px;overflow:hidden}
@@ -86,7 +82,7 @@ input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--b
 .footerbar .btn{flex:1;justify-content:center}
 
 @media (min-width:700px){
-  #remainingTargets{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .targets{grid-template-columns:repeat(4,minmax(0,1fr))}
   .footerbar{position:sticky;bottom:auto}
 }
 
@@ -95,7 +91,6 @@ input,select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--b
   .bar .btn{padding:9px 10px;font-size:13px}
   .tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
   .targets{grid-template-columns:1fr}
-  #remainingTargets{grid-template-columns:1fr}
   main.grid>.card:nth-of-type(2)>.row[style*="margin-top:10px"]{display:grid;grid-template-columns:auto 1fr auto;gap:8px}
   #btnToday{grid-column:1/-1;justify-content:center}
   .item{grid-template-columns:1fr;align-items:start}
